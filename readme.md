@@ -54,3 +54,37 @@ First You should know how to use John Resigs Base.js, details here: http://ejohn
 
 	console.log(employee.message);
 	//--> Person: Mike Miller Department: Sales
+
+### Additional Functionality
+
+## Class.override method
+
+This helps to override getters and setters or functions on your prototype
+"override" can set new methods or getters/setter too.
+
+"override" accepts 2 arguments, "name" and ("obj" or "fn").
+if you specify an object with "get" or/and "set" then this override will delegate to
+the getters and setters. if you dont specify an object but a function 
+just the function will be set onto the prototype.
+Both possibilities give you always the possibility to use the _super method/function.
+
+	var Person = Class.extend({});
+
+	var p, properties = "firstname lastname address".split(" ");
+	
+	while((p = properties.shift())) {
+		Person.override(p, {
+			get : function() {
+				return this["_" + p];
+			},
+			set : function(value) {
+				this["_" + p] = value;
+				// this needs some event provider
+				this.trigger("Property " + p + " changed...";
+			}
+		});
+	}
+
+	var person = new Person();
+	person.firstname = "Mike";
+	//--> triggers "Property firstname changed..." (if some event provider implemented)
