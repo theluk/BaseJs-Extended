@@ -57,7 +57,7 @@ First You should know how to use John Resigs Base.js, details here: http://ejohn
 
 ### Additional Functionality
 
-## Class.override method
+#### Class.override method
 
 This helps to override getters and setters or functions on your prototype
 "override" can set new methods or getters/setter too.
