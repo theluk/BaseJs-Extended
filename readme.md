@@ -33,14 +33,14 @@ First You should know how to use John Resigs Base.js, details here: http://ejohn
 			this._super();
 			this.department = options.department;
 		},
-		get message {
+		get message() {
 			return this._super() + " Department: " + this.department;
 		}
 	});
 
 	var person = new Person({
 		firstName : "Mike",
-		lastName : "Miller
+		lastName : "Miller"
 	});
 
 	console.log(person.message);
