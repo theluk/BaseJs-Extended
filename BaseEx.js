@@ -81,7 +81,6 @@
                     var a = {configurable: true};
                     if (fn.get) o.get = (sGetter && fnTest.test(fn.get) ? fnOverride(name, fn.get, sGetter) : fn.get);
                     if (fn.set) o.set = (sSetter && fnTest.test(fn.set) ? fnOverride(name, fn.set, sSetter) : fn.set);
-                    console.log(o);
                     Object.defineProperty(target, name, o);
 
                 /*
