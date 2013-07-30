@@ -1,23 +1,35 @@
-/* 
-* Extended Javascript Inheritance
-* for supporting overridable getters and setters
-* By Lukas Klinzing  
-*
-* Based on the great John Resigs Simple Base.js
-* --------------------------------
-* Base.js
-* Simple JavaScript Inheritance
-* By John Resig http://ejohn.org/
-* MIT Licensed.
-*  
-*/
+/*
+ * Extended Javascript Inheritance
+ * for supporting overridable getters and setters
+ * By Lukas Klinzing
+ *
+ * Based on the great John Resigs Simple Base.js
+ * --------------------------------
+ * Base.js
+ * Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ *
+ * --------------------------------
+ * Replaced deprecated functions __defineGetter__, __defineSetter__, __lookupGetter__
+ * with new ECMAScript standards (supporting all browsers + ie)
+ * By Eray Hanoglu
+ * MIT Licensed.
+ */
+
 // Inspired by base2 and Prototype
 (function () {
 
     var root = this;
 
     var initializing = false,
-        fnTest = /xyz/.test(function () { xyz; }) ? /\b_super\b/ : /.*/;
+        fnTest = /xyz/.test(function () {
+            /**
+             * This is a function where type checking is disabled.
+             * @suppress {suspiciousCode}
+             */
+            xyz;
+        }) ? /\b_super\b/ : /.*/;
 
     // The base Class implementation (does nothing)
     var Class = function () {
@@ -47,7 +59,8 @@
                 // but on the super-class
                 this._super = function () {
                     if (superFn) return superFn.apply(self, (arguments.length > 0 ? arguments : args));
-                }
+                    return null;
+                };
                 // The method only need to be bound temporarily, so we
                 // remove it when we're done executing
                 var ret = fn.apply(this, arguments);
@@ -58,48 +71,57 @@
         };
 
         var override = function (name, fn, source, target) {
+            var descriptor;
             if (typeof (fn) == "function" && typeof (source[name]) == "function" && fnTest.test(fn)) {
                 target[name] = fnOverride(name, fn, source[name]);
             } else if (fn && (fn.get || fn.set)) {
-                var sGetter = source.__lookupGetter__(name),
-					sSetter = source.__lookupSetter__(name);
-                if (fn.get)
-                    target.__defineGetter__(name, sGetter && fnTest.test(fn.get) ? fnOverride(name, fn.get, sGetter) : fn.get);
-                if (fn.set)
-                    target.__defineSetter__(name, sSetter && fnTest.test(fn.set) ? fnOverride(name, fn.set, sSetter) : fn.set);
+                var obj1 = Object.getOwnPropertyDescriptor(source, name),
+                    sGetter = (obj1 && obj1.get),
+                    sSetter = (obj1 && obj1.set);
+
+                descriptor = {configurable: true, enumerable: true};
+                if (fn.get) descriptor.get = (sGetter && fnTest.test(fn.get) ? fnOverride(name, fn.get, sGetter) : fn.get);
+                if (fn.set) descriptor.set = (sSetter && fnTest.test(fn.set) ? fnOverride(name, fn.set, sSetter) : fn.set);
+                Object.defineProperty(target, name, descriptor);
             } else {
                 if (target[name]) delete target[name];
-                target[name] = fn;
-            }
-        }
+                target[name] = fn;            }
+        };
 
         //Setters and Getters must be copied from _super unless they are going to be overriden
         //seems like "prototype = new this" doesnt copy getters and setters to the new prototype
         //this one is inspired (borrowed) from John Resigs post on  "JavaScript Getters and Setters"
         //http://ejohn.org/blog/javascript-getters-and-setters/
-        for (var name in _super) {
-            var g = _super.__lookupGetter__(name),
-                s = _super.__lookupSetter__(name),
-                og = prop.__lookupGetter__(name),
-                os = prop.__lookupSetter__(name);
+        var name, obj1, obj2;
+        for (name in _super) {
 
-            if ((g && !og) || (s && !os)) {
-                if (g)
-                    prototype.__defineGetter__(name, g);
-                if (s)
-                    prototype.__defineSetter__(name, s);
+            if (_super.hasOwnProperty(name)) {
+                obj1 = Object.getOwnPropertyDescriptor(_super, name);
+                obj2 = Object.getOwnPropertyDescriptor(prop, name);
+                var g = (obj1 && obj1.get),
+                    s = (obj1 && obj1.set),
+                    og = (obj2 && obj2.get),
+                    os = (obj2 && obj2.set);
+
+                if ((g && !og) || (s && !os)) {
+                    var descriptor = {configurable: true, enumerable: true};
+                    if (g) descriptor.get = g;
+                    if (s) descriptor.set = s;
+                    Object.defineProperty(prototype, name, descriptor);
+                }
             }
         }
 
-
         // Copy the properties over onto the new prototype
-        for (var name in prop) {
+        for (name in prop) {
 
-            var getter = prop.__lookupGetter__(name),
-                setter = prop.__lookupSetter__(name);
-            var options = (getter || setter) ? { get: getter, set: setter} : prop[name];
-            override(name, options, _super, prototype);
-
+            if (prop.hasOwnProperty(name)) {
+                obj1 = Object.getOwnPropertyDescriptor(prop, name);
+                var getter = obj1.get,
+                    setter = obj1.set;
+                var options = (getter || setter) ? { get: getter, set: setter} : prop[name];
+                override(name, options, _super, prototype);
+            }
         }
 
         // The dummy class constructor
