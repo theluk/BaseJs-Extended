@@ -104,10 +104,10 @@
                     os = (obj2 && obj2.set);
 
                 if ((g && !og) || (s && !os)) {
-                    var a = {configurable: true, enumerable: true};
-                    if (g) a.get = g;
-                    if (s) a.set = s;
-                    Object.defineProperty(prototype, name, a);
+                    var descriptor = {configurable: true, enumerable: true};
+                    if (g) descriptor.get = g;
+                    if (s) descriptor.set = s;
+                    Object.defineProperty(prototype, name, descriptor);
                 }
             }
         }
