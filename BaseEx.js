@@ -16,10 +16,7 @@
  * By Eray Hanoglu
  * MIT Licensed.
  */
-/**
- * This is a function where type checking is disabled.
- * @suppress {suspiciousCode}
- */
+
 // Inspired by base2 and Prototype
 (function () {
 
@@ -27,6 +24,10 @@
 
     var initializing = false,
         fnTest = /xyz/.test(function () {
+            /**
+             * This is a function where type checking is disabled.
+             * @suppress {suspiciousCode}
+             */
             xyz;
         }) ? /\b_super\b/ : /.*/;
 
@@ -70,29 +71,21 @@
         };
 
         var override = function (name, fn, source, target) {
+            var descriptor;
             if (typeof (fn) == "function" && typeof (source[name]) == "function" && fnTest.test(fn)) {
                 target[name] = fnOverride(name, fn, source[name]);
             } else if (fn && (fn.get || fn.set)) {
                 var obj1 = Object.getOwnPropertyDescriptor(source, name),
-                    o = {},
                     sGetter = (obj1 && obj1.get),
                     sSetter = (obj1 && obj1.set);
 
-                    var a = {configurable: true};
-                    if (fn.get) o.get = (sGetter && fnTest.test(fn.get) ? fnOverride(name, fn.get, sGetter) : fn.get);
-                    if (fn.set) o.set = (sSetter && fnTest.test(fn.set) ? fnOverride(name, fn.set, sSetter) : fn.set);
-                    Object.defineProperty(target, name, o);
-
-                /*
-                if (fn.get)
-                    target.__defineGetter__(name, sGetter && fnTest.test(fn.get) ? fnOverride(name, fn.get, sGetter) : fn.get);
-                if (fn.set)
-                    target.__defineSetter__(name, sSetter && fnTest.test(fn.set) ? fnOverride(name, fn.set, sSetter) : fn.set);
-                    */
+                descriptor = {configurable: true, enumerable: true};
+                if (fn.get) descriptor.get = (sGetter && fnTest.test(fn.get) ? fnOverride(name, fn.get, sGetter) : fn.get);
+                if (fn.set) descriptor.set = (sSetter && fnTest.test(fn.set) ? fnOverride(name, fn.set, sSetter) : fn.set);
+                Object.defineProperty(target, name, descriptor);
             } else {
                 if (target[name]) delete target[name];
-                target[name] = fn;
-            }
+                target[name] = fn;            }
         };
 
         //Setters and Getters must be copied from _super unless they are going to be overriden
@@ -101,6 +94,7 @@
         //http://ejohn.org/blog/javascript-getters-and-setters/
         var name, obj1, obj2;
         for (name in _super) {
+
             if (_super.hasOwnProperty(name)) {
                 obj1 = Object.getOwnPropertyDescriptor(_super, name);
                 obj2 = Object.getOwnPropertyDescriptor(prop, name);
@@ -110,9 +104,9 @@
                     os = (obj2 && obj2.set);
 
                 if ((g && !og) || (s && !os)) {
-                    a = {configurable: true};
-                    if (g) obj1.get = g;
-                    if (s) obj1.set = s;
+                    var a = {configurable: true, enumerable: true};
+                    if (g) a.get = g;
+                    if (s) a.set = s;
                     Object.defineProperty(prototype, name, a);
                 }
             }
@@ -120,6 +114,7 @@
 
         // Copy the properties over onto the new prototype
         for (name in prop) {
+
             if (prop.hasOwnProperty(name)) {
                 obj1 = Object.getOwnPropertyDescriptor(prop, name);
                 var getter = obj1.get,
